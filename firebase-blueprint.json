@@ -1,0 +1,47 @@
+{
+  "entities": {
+    "Trade": {
+      "title": "Trade",
+      "description": "A day trade operation record",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "UID of the user who owns this trade" },
+        "date": { "type": "string", "format": "date", "description": "Date of the trade" },
+        "asset": { "type": "string", "description": "Asset traded (e.g., WINFUT, PETR4)" },
+        "accountValue": { "type": "number", "description": "Current account value in R$" },
+        "stopWin": { "type": "number", "description": "Target profit in R$" },
+        "stopLoss": { "type": "number", "description": "Maximum loss in R$" },
+        "result": { "type": "number", "description": "Final result of the day in R$" },
+        "deposit": { "type": "number", "description": "Deposit amount in R$" },
+        "depositDate": { "type": "string", "format": "date", "description": "Date of deposit" },
+        "notes": { "type": "string", "description": "Observations about the trade" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "date", "asset", "result", "createdAt"]
+    },
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Private user profile data",
+      "type": "object",
+      "properties": {
+        "firstName": { "type": "string" },
+        "lastName": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "broker": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "admin"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email", "role"]
+    }
+  },
+  "firestore": {
+    "/trades/{tradeId}": {
+      "schema": "Trade",
+      "description": "Collection of all trade records"
+    },
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Private user profile documents"
+    }
+  }
+}

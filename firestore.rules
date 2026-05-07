@@ -1,0 +1,52 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.userId;
+    }
+
+    function isValidTrade(data) {
+      return data.keys().hasAll(['userId', 'date', 'result', 'createdAt', 'type']) &&
+             data.userId == request.auth.uid &&
+             data.result is number &&
+             data.date is string &&
+             data.createdAt is string &&
+             data.type in ['trade', 'deposit', 'withdrawal'];
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['email', 'role']) &&
+             data.email is string &&
+             data.role in ['user', 'admin'];
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == 'user';
+      allow update: if isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == resource.data.role;
+    }
+
+    match /trades/{tradeId} {
+      allow read: if isAuthenticated() && (resource == null || resource.data.userId == request.auth.uid);
+      allow create: if isAuthenticated() && isValidTrade(request.resource.data);
+      allow update: if isDocOwner() && isValidTrade(request.resource.data) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isDocOwner();
+    }
+  }
+}
